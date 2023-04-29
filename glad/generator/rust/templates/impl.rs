@@ -111,8 +111,9 @@ mod storage {
 }
 {% endif %}
 
+#[allow(non_snake_case)]
 {% if options.mx %}
-pub fn gl_load<F>(mut loadfn: F) -> functions::{{ ctx_name }} where F: FnMut(&'static str) -> *const c_void {
+pub fn gladLoad<F>(mut loadfn: F) -> functions::{{ ctx_name }} where F: FnMut(&'static str) -> *const c_void {
     #[allow(unused_mut)]
     let mut ctx = {{ ctx_name }} {
         {% for command in feature_set.commands %}
@@ -129,7 +130,7 @@ pub fn gl_load<F>(mut loadfn: F) -> functions::{{ ctx_name }} where F: FnMut(&'s
      ctx
 }
 {% else %}
-pub fn gl_load<F>(mut loadfn: F) where F: FnMut(&'static str) -> *const c_void {
+pub fn gladLoad<F>(mut loadfn: F) where F: FnMut(&'static str) -> *const c_void {
     unsafe {
         {% for command in feature_set.commands %}
         {{ template_utils.protect(command) }} storage::{{ command.name }}.set_ptr(loadfn("{{ command.name }}\0"));

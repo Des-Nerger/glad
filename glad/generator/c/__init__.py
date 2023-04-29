@@ -196,7 +196,7 @@ def enum_member(context, type_, member, require_value=False):
     return resolve(member.alias)
 
 
-_CPP_STYLE_COMMENT_RE = re.compile(r'(^|\s|\))//(?P<comment>.*)$', flags=re.MULTILINE)
+_CPP_STYLE_COMMENT_RE = re.compile(r'(^|\s|\))//(?P<comment>[^\r^\n]*)', flags=re.MULTILINE)
 
 
 def replace_cpp_style_comments(inp):
@@ -268,7 +268,37 @@ class CGenerator(JinjaGenerator):
         Header(
             'vk_platform',
             'vk_platform.h',
-            'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/main/include/vulkan/vk_platform.h'
+            'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/main/include/vulkan/vk_platform.h'
+        ),
+        Header(
+            'vk_video/vulkan_video_codec_h264std.h',
+            'vk_video/vulkan_video_codec_h264std.h',
+            'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/main/include/vk_video/vulkan_video_codec_h264std.h'
+        ),
+        Header(
+            'vk_video/vulkan_video_codec_h264std_decode.h',
+            'vk_video/vulkan_video_codec_h264std_decode.h',
+            'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/main/include/vk_video/vulkan_video_codec_h264std_decode.h'
+        ),
+        Header(
+            'vk_video/vulkan_video_codec_h264std_encode.h',
+            'vk_video/vulkan_video_codec_h264std_encode.h',
+            'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/main/include/vk_video/vulkan_video_codec_h264std_encode.h'
+        ),
+        Header(
+            'vk_video/vulkan_video_codec_h265std.h',
+            'vk_video/vulkan_video_codec_h265std.h',
+            'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/main/include/vk_video/vulkan_video_codec_h265std.h'
+        ),
+        Header(
+            'vk_video/vulkan_video_codec_h265std_decode.h',
+            'vk_video/vulkan_video_codec_h265std_decode.h',
+            'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/main/include/vk_video/vulkan_video_codec_h265std_decode.h'
+        ),
+        Header(
+            'vk_video/vulkan_video_codec_h265std_encode.h',
+            'vk_video/vulkan_video_codec_h265std_encode.h',
+            'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/main/include/vk_video/vulkan_video_codec_h265std_encode.h'
         ),
     ]
 
@@ -461,8 +491,8 @@ class CGenerator(JinjaGenerator):
 
             if not os.path.exists(path):
                 content = self._read_header(header.url)
-                with open(path, 'w') as dest:
-                    dest.write(content)
+                with open(path, 'wb') as dest:
+                    dest.write(content.encode('utf-8'))
 
     def _read_header(self, url):
         if url not in self._headers:

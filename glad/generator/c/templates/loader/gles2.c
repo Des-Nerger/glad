@@ -1,6 +1,7 @@
 {% import "template_utils.h" as template_utils with context %}
 #ifdef GLAD_GLES2
 
+{% set loader_handle = template_utils.handle('gles2') %}
 {% include 'loader/library.c' %}
 
 #if GLAD_PLATFORM_EMSCRIPTEN
@@ -9,6 +10,9 @@
   typedef __eglMustCastToProperFunctionPointerType (GLAD_API_PTR *PFNEGLGETPROCADDRESSPROC)(const char *name);
 #endif
   extern __eglMustCastToProperFunctionPointerType emscripten_GetProcAddress(const char *name);
+#elif defined(GLAD_GLES2_USE_SYSTEM_EGL)
+  #include <EGL/egl.h>
+  typedef __eglMustCastToProperFunctionPointerType (GLAD_API_PTR *PFNEGLGETPROCADDRESSPROC)(const char *name);
 #else
   #include <glad/egl.h>
 #endif
@@ -38,7 +42,7 @@ static GLADapiproc glad_gles2_get_proc(void *vuserptr, const char* name) {
 }
 
 {% if not options.mx %}
-static void* {{ template_utils.handle() }} = NULL;
+static void* {{ loader_handle }} = NULL;
 {% endif %}
 
 static void* glad_gles2_dlopen_handle({{ template_utils.context_arg(def='void') }}) {
@@ -55,11 +59,11 @@ static void* glad_gles2_dlopen_handle({{ template_utils.context_arg(def='void') 
     GLAD_UNUSED(glad_get_dlopen_handle);
     return NULL;
 #else
-    if ({{ template_utils.handle() }} == NULL) {
-        {{ template_utils.handle() }} = glad_get_dlopen_handle(NAMES, sizeof(NAMES) / sizeof(NAMES[0]));
+    if ({{ loader_handle }} == NULL) {
+        {{ loader_handle }} = glad_get_dlopen_handle(NAMES, sizeof(NAMES) / sizeof(NAMES[0]));
     }
 
-    return {{ template_utils.handle() }};
+    return {{ loader_handle }};
 #endif
 }
 
@@ -90,11 +94,12 @@ int gladLoaderLoadGLES2{{ 'Context' if options.mx }}({{ template_utils.context_a
     userptr.get_proc_address_ptr = emscripten_GetProcAddress;
     version = gladLoadGLES2{{ 'Context' if options.mx }}UserPtr({{ 'context, ' if options.mx }}glad_gles2_get_proc, &userptr);
 #else
+#ifndef GLAD_GLES2_USE_SYSTEM_EGL
     if (eglGetProcAddress == NULL) {
         return 0;
     }
-
-    did_load = {{ template_utils.handle() }} == NULL;
+#endif
+    did_load = {{ loader_handle }} == NULL;
     handle = glad_gles2_dlopen_handle({{ 'context' if options.mx }});
     if (handle != NULL) {
         userptr = glad_gles2_build_userptr(handle);
@@ -129,9 +134,9 @@ int gladLoaderLoadGLES2(void) {
 {% endif %}
 
 void gladLoaderUnloadGLES2{{ 'Context' if options.mx }}({{ template_utils.context_arg(def='void') }}) {
-    if ({{ template_utils.handle() }} != NULL) {
-        glad_close_dlopen_handle({{ template_utils.handle() }});
-        {{ template_utils.handle() }} = NULL;
+    if ({{ loader_handle }} != NULL) {
+        glad_close_dlopen_handle({{ loader_handle }});
+        {{ loader_handle }} = NULL;
 {% if options.on_demand %}
         glad_gles2_internal_loader_global_userptr.get_proc_address_ptr = NULL;
 {% endif %}
